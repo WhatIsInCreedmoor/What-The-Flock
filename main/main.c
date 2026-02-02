@@ -23,24 +23,30 @@
 
 // Hardware Definitions - Conditional on Target Chip
 #if CONFIG_IDF_TARGET_ESP32C6
+    #define HAS_LED 1
     #define USER_LED_GPIO 15
     #define USER_BUZZER_GPIO 0
-    #define HAS_LED 1
 
     // External antenna setup for C6
     #define ENABLE_EXT_ANTENNA 1
     #define EXT_ANT_PIN1 3
     #define EXT_ANT_PIN2 14
 
+#elif CONFIG_IDF_TARGET_ESP32C5
+    #define HAS_LED 1
+    #define USER_LED_GPIO 27
+    #define USER_BUZZER_GPIO 1
+    #define ENABLE_EXT_ANTENNA 0
+
 #elif CONFIG_IDF_TARGET_ESP32S3
+    #define HAS_LED 1
     #define USER_LED_GPIO 21
     #define USER_BUZZER_GPIO 1
-    #define HAS_LED 1
     #define ENABLE_EXT_ANTENNA 0
 
 #elif CONFIG_IDF_TARGET_ESP32C3
-    #define USER_BUZZER_GPIO 2
     #define HAS_LED 0
+    #define USER_BUZZER_GPIO 2
     #define ENABLE_EXT_ANTENNA 0
 
 #else
@@ -423,13 +429,54 @@ static void ble_init_monitor(void) {
 static void channel_hop_task(void *arg)
 {
     ESP_LOGI(TAG, "Channel hop task running on core %d", xPortGetCoreID());
-    uint8_t channel = 1;
+
+    /* Define the channel list based on the Chip Target.
+       For ESP32-C5: Includes all standard 20MHz 5GHz channels (UNII-1, 2A, 2C, 3).
+       For Others: Defaults to standard 2.4GHz (1-13).
+    */
+    #if CONFIG_IDF_TARGET_ESP32C5
+    const uint8_t channels[] = {
+        // --- 2.4 GHz Band (Common) ---
+        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
+
+        // --- 5 GHz Band (UNII-1) ---
+        36, 40, 44, 48,
+
+        // --- 5 GHz Band (UNII-2A - DFS) ---
+        52, 56, 60, 64,
+
+        // --- 5 GHz Band (UNII-2C - DFS) ---
+        100, 104, 108, 112, 116, 120, 124, 128, 132, 136, 140, 144,
+
+        // --- 5 GHz Band (UNII-3) ---
+        149, 153, 157, 161, 165
+    };
+    #else
+    // Standard 2.4GHz list for C3, C6, S3
+    const uint8_t channels[] = {
+        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13
+    };
+    #endif
+
+    int current_index = 0;
+    int num_channels = sizeof(channels) / sizeof(channels[0]);
 
     while (1) {
-        esp_wifi_set_channel(channel, WIFI_SECOND_CHAN_NONE);
-        channel = (channel % 13) + 1;
-        ESP_LOGD(TAG, ">> CHANNEL: %d <<", channel);
-        vTaskDelay(pdMS_TO_TICKS(500));
+        uint8_t ch = channels[current_index];
+
+        // Setting the second channel to NONE is safer for simple hopping
+        esp_wifi_set_channel(ch, WIFI_SECOND_CHAN_NONE);
+
+        // Log less frequently to reduce noise, or keep it if you need debug
+        ESP_LOGV(TAG, ">> CHANNEL: %d <<", ch);
+
+        current_index++;
+        if (current_index >= num_channels) {
+            current_index = 0;
+        }
+
+        // 300ms is usually enough to catch beacons; 500ms is also fine
+        vTaskDelay(pdMS_TO_TICKS(300));
     }
 }
 

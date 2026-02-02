@@ -6,13 +6,13 @@ Concurrent Scanning: Uses the NimBLE stack and Promiscuous WiFi mode simultaneou
 Persistent Storage: A dedicated 1MB SPIFFS partition stores detections that persist across reboots.
 
 # XIAO C6 Optimized:
-Developed Primarily on the Seeed Studio ESP32C6 hardware. It should work for the ESP32C6, C3, or S3.
+Developed Primarily on the Seeed Studio ESP32C6 hardware. It should work for the ESP32C6, C5, C3, or S3. (The C5 will also scan 5Ghz networks. This has not been extensively tested in the field to be better or worse.)
 
 # Hardware Requirements
 - Primary Hardware: Seeed Studio XIAO ESP32-C6.
 - Antenna: External 2.4GHz antenna (u.FL/IPEX) for maximum range.
 - Indicators: 
-  * User LED: GPIO 15. (C6, 21 for S3)
+  * User LED: GPIO 15. (C6, 21 for S3, 27 for C5)
   * Active Buzzer: GPIO 0 (Triggered High).
 
 # Setting up ESP-IDF Framework
@@ -34,6 +34,10 @@ idf.py set-target esp32c6
 # For XIAO C3:
 ```
 idf.py set-target esp32c3
+```
+# For XIAO C5:
+```
+idf.py set-target esp32c5
 ```
 # Build, Flash, and Monitor
 ```
