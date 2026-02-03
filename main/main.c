@@ -437,7 +437,7 @@ static void channel_hop_task(void *arg)
     #if CONFIG_IDF_TARGET_ESP32C5
     const uint8_t channels[] = {
         // --- 2.4 GHz Band (Common) ---
-        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
+        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
 
         // --- 5 GHz Band (UNII-1) ---
         36, 40, 44, 48,
@@ -454,7 +454,7 @@ static void channel_hop_task(void *arg)
     #else
     // Standard 2.4GHz list for C3, C6, S3
     const uint8_t channels[] = {
-        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13
+        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11
     };
     #endif
 
